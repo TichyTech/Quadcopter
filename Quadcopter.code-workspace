@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "FlightController"
+		},
+		{
+			"path": "RemoteController"
+		}
+	],
+  "settings": {
+    "files.associations": {
+      "chrono": "cpp",
+      "ostream": "cpp",
+      "cmath": "cpp",
+      "random": "cpp"
+    }
+  }
+}

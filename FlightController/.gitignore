@@ -1,0 +1,5 @@
+.pio
+.vscode
+lib/README
+include/README
+test/README
