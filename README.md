@@ -64,8 +64,8 @@ In order to have complete control over what is happening in the flight controlle
 To my surprise, the PCB design did not have any major flaws except for the fact, that the RT6150B chip I used for 3.3V power supply to stay close to the [Pi Pico 2 Design](https://datasheets.raspberrypi.com/pico/pico-2-datasheet.pdf) is basically impossible to source nowadays. I was lucky and found that I had all the necessary leads exposed, so that I could simply design a cute tiny solder-on module to bypass the original power supply using a linear regulator instead. This power module is based around the AP7366-33W5 linear regulator IC. I just added some decoupling capacitors and an indication LED to it. Here is the module and its placement on the flight controller PCB:
 
 <div align="center">
-<img src="docs/AP7366module.jpg" alt="PowerModule" height="320"/>
-<img src="docs/AP7366module_onPCB.jpg" alt="PowerModulePlacement" height="320"/>
+<img src="docs/AP7366module.jpg" alt="PowerModule" width="480"/>
+<img src="docs/AP7366module_onPCB.jpg" alt="PowerModulePlacement" width="480"/>
 </div>
 
 And finally, blink example!
