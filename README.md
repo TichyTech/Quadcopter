@@ -16,36 +16,6 @@ Look, it flies!!
 
 # Project Overview
 
-### Custom PCB
-
-In order to have complete control over what is happening in the flight controller, I selected and sourced necessary SMD components and designed a custom [flight controller pcb](https://github.com/TichyTech/rp2350-flight-controller). I ordered the double sided PCB from a manufacturer as well as the components and put it all together using solder paste and hot plate. This was my first time soldering on this scale, but it turned out pretty good I would say!
-
-<div align="center">
-<img src="docs/FC_PCB.jpg" alt="FC_PCB" width="640"/>
-</div>
-
-To my surprise, the PCB design did not have any major flaws except for the fact, that the RT6150B chip I used for 3.3V power supply to stay close to the [Pi Pico 2 Design](https://datasheets.raspberrypi.com/pico/pico-2-datasheet.pdf) is basically impossible to source nowadays. I was lucky and found that I had all the necessary leads exposed, so that I could simply design a cute tiny solder-on module to bypass the original power supply using a linear regulator instead. This power module is based around the AP7366-33W5 linear regulator IC. I just added some decoupling capacitors and an indication LED to it. Here is the module and its placement on the flight controller PCB:
-
-<div align="center">
-<img src="docs/AP7366module.jpg" alt="PowerModule" height="240"/>
-<img src="docs/AP7366module_onPCB.jpg" alt="PowerModulePlacement" height="240"/>
-</div>
-
-And finally, blink example!
-
-<div align="center">
-<img src="docs/FC_PCB_Blink.gif" alt="Blinking" height="240"/>
-</div>
-
-To save some space, I also designed a custom power distribution board, which is really just  some copper to distribute the battery power and a 5V DC-Buck Converter based on the AP3211 IC to step down the battery voltage and power my flight controller. This chip is capable of providing up to 1.5A according to the datasheet!
-
-<div align="center">
-<img src="docs/PDB_schematic.png" alt="PDB_schematic" height="240"/>
-<img src="docs/PDB_PCB.jpg" alt="PDB_photo" height="240"/>
-</div>
-
-The traces are kept unmasked, so that I can put solder on them and decrease their resistance, which leads to lower power losses and heat buildup. 
-
 ### Custom 3D printed frame
 
 It took a lot of iterations to get this 3D printed frame right. In the previous design attempts, I struggled with motor caused vibrations creeping their way into the IMU and while the Gyroscope was still usable, the Accelerometer was not able to keep the drone perfectly upright. Therefore I made the drone a lot more sturdy, while also adding vibration dampers under the flight controller to help shield it from noise.
@@ -87,6 +57,36 @@ And here, enjoy some renders:
 <div align="center">
 <img src="docs/QuadRenderFlight.png" alt="QuadRenderFlight" width="480"/>
 </div>
+
+### Custom PCB
+
+In order to have complete control over what is happening in the flight controller, I selected and sourced necessary SMD components and designed a custom [flight controller pcb](https://github.com/TichyTech/rp2350-flight-controller). I ordered the double sided PCB from a manufacturer as well as the components and put it all together using solder paste and hot plate. This was my first time soldering on this scale, but it turned out pretty good I would say!
+
+<div align="center">
+<img src="docs/FC_PCB.jpg" alt="FC_PCB" width="640"/>
+</div>
+
+To my surprise, the PCB design did not have any major flaws except for the fact, that the RT6150B chip I used for 3.3V power supply to stay close to the [Pi Pico 2 Design](https://datasheets.raspberrypi.com/pico/pico-2-datasheet.pdf) is basically impossible to source nowadays. I was lucky and found that I had all the necessary leads exposed, so that I could simply design a cute tiny solder-on module to bypass the original power supply using a linear regulator instead. This power module is based around the AP7366-33W5 linear regulator IC. I just added some decoupling capacitors and an indication LED to it. Here is the module and its placement on the flight controller PCB:
+
+<div align="center">
+<img src="docs/AP7366module.jpg" alt="PowerModule" height="240"/>
+<img src="docs/AP7366module_onPCB.jpg" alt="PowerModulePlacement" height="240"/>
+</div>
+
+And finally, blink example!
+
+<div align="center">
+<img src="docs/FC_PCB_Blink.gif" alt="Blinking" height="240"/>
+</div>
+
+To save some space, I also designed a custom power distribution board, which is really just  some copper to distribute the battery power and a 5V DC-Buck Converter based on the AP3211 IC to step down the battery voltage and power my flight controller. This chip is capable of providing up to 1.5A according to the datasheet!
+
+<div align="center">
+<img src="docs/PDB_schematic.png" alt="PDB_schematic" height="240"/>
+<img src="docs/PDB_PCB.jpg" alt="PDB_photo" height="240"/>
+</div>
+
+The traces are kept unmasked, so that I can put solder on them and decrease their resistance, which leads to lower power losses and heat buildup. 
 
 # Hardware Overview
 
