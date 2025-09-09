@@ -41,7 +41,7 @@ And as an extra bonus, I tried to make the wings downward foldable, so I can sto
 
 <div align="center">
 <img src="docs/CADscreen.png" alt="CAD" height="260"/>
-<img src="docs/CAD_SLice_annotated.png" alt="CAD_Inside" height="260"/>
+<img src="docs/CAD_Slice_annotated.png" alt="CAD_Inside" height="260"/>
 </div>
 
 And here, enjoy some renders:
