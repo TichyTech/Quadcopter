@@ -251,4 +251,28 @@ inline Vector4 rpy2quat(const AttReference& att_ref){
   return quat_mult(q_y, quat_mult(q_p, q_r));
 }
 
+/**
+ * \brief compute a rotation matrix from accelerometer and magnetometer readings
+ * 
+ * \param m measurements struct
+ * \return rotation matrix
+ */
+inline Matrix3 acc_mag2DCM(const Measurements& m){
+  // Use current measurements to construct a direction cosine matrix [North, West, Up]
+  Matrix3 DCM;
+  DCM.Column(1) = normalize(skew(m.acc_vec)*m.mag_vec);  // West vector
+  DCM.Column(0) = normalize(skew(DCM.Column(1)) * m.acc_vec);  // North vector
+  DCM.Column(2) = normalize(m.acc_vec);  // Up vector
+  return DCM;  
+}
+
+// direction cosine matrix to roll, pitch and yaw angles
+inline Vector3 DCM2RPY(const Matrix3& D){  
+  Vector3 RPY;
+  RPY(0) =  TO_DEG*atan2(D(1,2), D(2,2)); 
+  RPY(1) = -TO_DEG*atan2(D(0,2), sqrt(D(0,1)*D(0,1) + D(0,0)*D(0,0)) );
+  RPY(2) =  TO_DEG*atan2(D(0,1), D(0,0));
+  return RPY;
+}
+
 #endif
