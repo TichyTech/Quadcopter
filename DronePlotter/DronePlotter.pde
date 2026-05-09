@@ -58,7 +58,7 @@ EKFDatapoints ekf_database;
 AttitudeDatapoints att_database;
 QuattitudeDatapoints quat_database;
 
-int serialPort = 2;
+int serialPort = 1;
  
 void setup() {
   size(1440, 1080, P3D);

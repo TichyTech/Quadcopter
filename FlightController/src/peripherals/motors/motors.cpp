@@ -1,4 +1,4 @@
-#include "motors.h"
+#include "peripherals/motors/motors.h"
 
 // MOTOR NUMBERING DIAGRAM
 // TOP VIEW

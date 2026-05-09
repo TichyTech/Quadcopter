@@ -1,7 +1,6 @@
-#include "mediator.h"
+#include "peripherals/mediator.h"
 
-Mediator::Mediator(AttController &att_ctrl, QuatController &quat_ctrl, PosController &pos_ctrl, Communication &comm) :
-    att_ctrl(att_ctrl), 
+Mediator::Mediator(QuatController &quat_ctrl, PosController &pos_ctrl, Communication &comm) :
     quat_ctrl(quat_ctrl),
     pos_ctrl(pos_ctrl),
     comm(comm)
@@ -14,15 +13,6 @@ void Mediator::update_configs()
         if (!comm.updated_config[i]) continue;
         PID_AXIS axis = static_cast<PID_AXIS>(i);
         switch (axis) {
-            case PID_AXIS::ROLL:
-                att_ctrl.update_PID_params(0, comm.pop_config(i));
-                break;
-            case PID_AXIS::PITCH:
-                att_ctrl.update_PID_params(1, comm.pop_config(i));
-                break;
-            case PID_AXIS::YAW:
-                att_ctrl.update_PID_params(2, comm.pop_config(i));
-                break;
             case PID_AXIS::XY:
                 pos_ctrl.update_PID_params(0, comm.pop_config(i));
                 pos_ctrl.update_PID_params(1, comm.pop_config(i));

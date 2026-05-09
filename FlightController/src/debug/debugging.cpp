@@ -1,4 +1,4 @@
-#include "debugging.h"
+#include "debug/debugging.h"
 
 void printVec3(Vector3 v, uint8_t precision){
   Serial.print(v(0), precision);

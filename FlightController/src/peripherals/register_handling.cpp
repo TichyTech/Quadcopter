@@ -1,4 +1,4 @@
-#include "register_handling.h"
+#include "peripherals/register_handling.h"
 
 int write_reg(TwoWire& wire, uint8_t address, uint8_t reg, uint8_t value){
   wire.beginTransmission(address);

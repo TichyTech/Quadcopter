@@ -1,4 +1,4 @@
-#include "NRF24.h"
+#include "peripherals/drivers/NRF24.h"
 #include "debug/debugging.h"
 
 Communication::Communication(SPIClass &spi) : 

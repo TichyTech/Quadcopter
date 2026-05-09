@@ -3,16 +3,15 @@
 #include "config.h"
 #include "definitions.h"
 #include "debug/debugging.h"
-#include "peripherals/peripherlas.h"
-#include "peripherals/sensors.h"
-#include "peripherals/comms/NRF24.h"
-#include "peripherals/gps/M100-5883.h"
+#include "peripherals/peripherals.h"
+#include "peripherals/sensor_manager.h"
+#include "peripherals/drivers/NRF24.h"
+#include "peripherals/drivers/M100-5883.h"
 
-#include "control/attitude_controller.h"
-#include "control/quat_controller/quat_controller.h"
+#include "control/quat_controller.h"
 #include "control/position_controller.h"
 #include "control/filter.h"
-#include "control/kalman_filter/kalman.h"
+#include "control/kalman.h"
 #include "peripherals/motors/motors.h"
 
 #include "peripherals/mediator.h"
@@ -33,7 +32,6 @@ float initial_yaw = 0;
 
 Sensors sensors = Sensors();
 Communication comm = Communication(SPI); 
-AttController att_controller = AttController();
 QuatController quat_controller = QuatController();
 KalmanFilter k_filter = KalmanFilter();
 
@@ -41,7 +39,7 @@ GPS gps = GPS();
 PosController pos_controller = PosController();
 Vector3 pos_controller_output = {0,0,0};
 
-Mediator mediator(att_controller, quat_controller, pos_controller, comm);
+Mediator mediator(quat_controller, pos_controller, comm);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

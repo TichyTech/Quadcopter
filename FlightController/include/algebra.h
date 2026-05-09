@@ -1,5 +1,5 @@
-#ifndef ALGEBRA
-#define ALGEBRA
+#ifndef ALGEBRA_H
+#define ALGEBRA_H
 
 #include "definitions.h"
 

@@ -1,4 +1,4 @@
-#include "peripherlas.h"
+#include "peripherals/peripherals.h"
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>

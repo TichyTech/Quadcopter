@@ -1,4 +1,4 @@
-#include "quat_controller.h"
+#include "control/quat_controller.h"
 
 // MOTOR NUMBERING DIAGRAM
 // TOP VIEW
@@ -38,31 +38,32 @@ QuatController::QuatController(){
   m_p = {0,0,0,0};
   
   // The Torque matrix can be decomposed as a product of a diagonal scaling matrix S and an orthonormal matrix U
-  Vector4 t_v = {0.8, 0.8, 0.1, 6.0};  // estimated torques around roll, pitch, yaw and thrust
-  Vector4 inv_t_v = {1/t_v(0), 1/t_v(1), 1/t_v(2), 1/t_v(3)};
-  Matrix4 S = diag_matrix(t_v * 2.0f);
-  Matrix4 S_inv = diag_matrix(inv_t_v * 0.5f);
-  Matrix4 U = {0.5, -0.5, -0.5, 0.5,
+  const Vector4 t_v = {0.8, 0.8, 0.1, 6.0};  // estimated torques around roll, pitch, yaw and thrust
+  const Vector4 inv_t_v = {1/t_v(0), 1/t_v(1), 1/t_v(2), 1/t_v(3)};  // inverse torques
+  const Matrix4 S = diag_matrix(t_v * 2.0f);  // diagonal matrix part of the torque matrix
+  const Matrix4 S_inv = diag_matrix(inv_t_v * 0.5f);  // Inverse of S
+  const Matrix4 U = {0.5, -0.5, -0.5, 0.5,
               -0.5, -0.5, 0.5, 0.5,
               0.5, -0.5, 0.5, -0.5,
-              0.5, 0.5, 0.5, 0.5}; 
-  torque_matrix = S * U;
-  torque_matrix_inv = (~U) * S_inv;
+              0.5, 0.5, 0.5, 0.5};  // orthogonal allocation matrix
+  torque_matrix = S * U;  // maps motor values to torques
+  torque_matrix_inv = (~U) * S_inv;  // maps torques to motor values
 }
 
 Vector4 QuatController::process(Vector4 q_des, Vector4 q_est, Vector3 gyro, float throttle, float dt){
   // compute attitude error and desired angular velocity
   Vector4 q_des_body = quat_mult(q_est, q_des);  // quaternion error in body frame
+  if (q_des_body(0) < 0) q_des_body = -q_des_body;  // make sure that cosine(angle/2) > 0 !
+
   Vector3 axis = q_des_body.Submatrix<3,1>(1,0);  // this is sin(theta/2)*u where u is the rotation axis
-  last_axis = axis;
-  float sine = norm(axis);
-  float cosine = q_des_body(0);
+  const float sine = norm(axis);  // quaternion vector part norm = sin(angle/2)
+  const float cosine = q_des_body(0);  // cosine(angle/2)
   axis = axis / sine;  // normalized desired rotation axis
-  float angle = 2 * atan2(sine, cosine);
+  const float angle = 2 * atan2(sine, cosine);  // extract the angle
   omega_des = product(axis, rate_P) * angle;  // omega is proportional to angle error
 
   smooth_gyro = (1 - gyro_lpf)*smooth_gyro + gyro_lpf*gyro*TO_RAD;  // lpf gyro
-  Vector3 omega_err = omega_des - smooth_gyro;  // angular velocity error
+  const Vector3 omega_err = omega_des - smooth_gyro;  // angular velocity error
   err_sum = err_sum + omega_err * dt;  // error integral
   err_sum = clamp(err_sum, -sum_max, sum_max);  // prevent integral windup
   Vector3 d_gyro = (smooth_gyro - last_gyro) / dt;  // gyro derivative
@@ -70,7 +71,8 @@ Vector4 QuatController::process(Vector4 q_des, Vector4 q_est, Vector3 gyro, floa
   // now save for next iteration
   last_gyro = smooth_gyro;
   last_d_gyro = d_gyro;
-  
+  last_axis = axis;
+
   tau = product(k_p, omega_err) + product(k_i, err_sum) - product(k_d, smooth_gyro);
   tau = clamp(tau, -torque_limit, torque_limit);  // clamp torques to limits
 

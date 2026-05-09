@@ -1,6 +1,0 @@
-#ifndef PERIPHERALS_PERIPHERALS_H
-#define PERIPHERALS_PERIPHERALS_H
-
-void initialize_peripherals();
-
-#endif // PERIPHERALS_PERIPHERALS_H

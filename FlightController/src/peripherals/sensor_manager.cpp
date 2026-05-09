@@ -1,4 +1,4 @@
-#include "sensors.h"
+#include "peripherals/sensor_manager.h"
 
 #define ADC_TO_VOLTS 0.0053173828125f // 6.6 * 3.3V / 4096 scaling factor for BATT ADC
 #define ADC_OFFSET 0

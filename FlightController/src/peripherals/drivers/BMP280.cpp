@@ -2,7 +2,7 @@
 // BMP280
 #include "config.h"
 #include <Arduino.h>
-#include "BMP280.h"
+#include "peripherals/drivers/BMP280.h"
 
 #define SEALEVEL_HPA 1011
 #define ALT_REFRESH_PERIOD 44000  // for 16x 2x overs, 0.5 stdby

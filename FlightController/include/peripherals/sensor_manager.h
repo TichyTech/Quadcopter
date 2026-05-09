@@ -1,10 +1,10 @@
 #include "definitions.h"
 #include "config.h"
 
-#include "accmag/LSM303DLHC.h"
-#include "alt/BMP280.h"
-#include "mag/QMC8553.h"
-#include "imu/ICM42605.h"
+#include "peripherals/drivers/LSM303DLHC.h"
+#include "peripherals/drivers/BMP280.h"
+#include "peripherals/drivers/QMC8553.h"
+#include "peripherals/drivers/ICM42605.h"
 
 class Battery{
   private:

@@ -1,4 +1,4 @@
-#include "M100-5883.h"
+#include "peripherals/drivers/M100-5883.h"
 
 #define LAT_TO_METERS 0.0111319491667f
 #define LON_TO_METERS (LAT_TO_METERS * COS_LAT)

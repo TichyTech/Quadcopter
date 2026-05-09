@@ -1,11 +1,11 @@
-#ifndef DEFS
-#define DEFS 
+#ifndef DEFS_H
+#define DEFS_H
 
 #include <BasicLinearAlgebra.h>
 using namespace BLA;
 
 // helpful commands
-#define NOP __asm__("nop");  // 0.0108 us (at pico base frequency)
+// #define NOP __asm__("nop");  // 0.0108 us (at pico base frequency)
 
 /**
  * The signum function sgn(x) = -1 if x < 0, else 1

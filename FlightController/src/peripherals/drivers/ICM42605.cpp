@@ -1,4 +1,4 @@
-#include "ICM42605.h"
+#include "peripherals/drivers/ICM42605.h"
 
 #define ICM_SPI_CS 9
 

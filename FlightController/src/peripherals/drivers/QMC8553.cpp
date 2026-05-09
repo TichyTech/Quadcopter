@@ -1,6 +1,6 @@
 // https://www.st.com/resource/en/datasheet/DM00027543.pdf
 // LSM303DLHC accelerometer and magnetometer
-#include "QMC8553.h"
+#include "peripherals/drivers/QMC8553.h"
 
 #define QMC_MAG_ADR 0x0D
 #define QMC_MAG_REFRESH_RATE 200.0f  // Hz

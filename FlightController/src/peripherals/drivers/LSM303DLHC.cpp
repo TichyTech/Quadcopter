@@ -1,6 +1,6 @@
 // https://www.st.com/resource/en/datasheet/DM00027543.pdf
 // LSM303DLHC accelerometer and magnetometer
-#include "LSM303DLHC.h"
+#include "peripherals/drivers/LSM303DLHC.h"
 
 #define ACC_ADR 0x19
 #define MAG_ADR 0x1E

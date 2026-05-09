@@ -1,4 +1,4 @@
-#include "kalman.h"
+#include "control/kalman.h"
 
 // constants for the EKF
 #define QUAT_VAR_INIT 0.01f
