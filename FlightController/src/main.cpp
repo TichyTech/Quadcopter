@@ -3,18 +3,19 @@
 #include "config.h"
 #include "definitions.h"
 #include "debug/debugging.h"
+
 #include "peripherals/peripherals.h"
+#include "peripherals/mediator.h"
 #include "peripherals/sensor_manager.h"
 #include "peripherals/drivers/NRF24.h"
 #include "peripherals/drivers/M100-5883.h"
+#include "peripherals/motors/motors.h"
 
 #include "control/quat_controller.h"
 #include "control/position_controller.h"
-#include "control/filter.h"
+// #include "control/filter.h"
 #include "control/kalman.h"
-#include "peripherals/motors/motors.h"
 
-#include "peripherals/mediator.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
