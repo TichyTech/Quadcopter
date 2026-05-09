@@ -4,18 +4,18 @@
 #define ADC_OFFSET 0
 
 Battery::Battery(){
-  filtered_val = 0;
+  m_filtered_val = 0;
 }
 
 float Battery::get_voltage(){
-  float voltage = ADC_TO_VOLTS * (analogRead(ADC_PIN) - ADC_OFFSET);
+  const float voltage = ADC_TO_VOLTS * (analogRead(ADC_PIN) - ADC_OFFSET);
   return voltage;
 }
 
 float Battery::get_filtered_voltage(){
-  float current_reading = get_voltage();
-  filtered_val = current_reading * BATLPF_RATIO + filtered_val*(1 - BATLPF_RATIO);
-  return filtered_val;
+  const float current_reading = get_voltage();
+  m_filtered_val = current_reading * BATLPF_RATIO + m_filtered_val*(1 - BATLPF_RATIO);
+  return m_filtered_val;
 }
 
 Sensors::Sensors() : 

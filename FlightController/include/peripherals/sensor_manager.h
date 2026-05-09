@@ -6,13 +6,16 @@
 #include "peripherals/drivers/QMC8553.h"
 #include "peripherals/drivers/ICM42605.h"
 
+/**
+ * Class for managing battery readout and filtering
+ */
 class Battery{
   private:
-    float filtered_val;
+    float m_filtered_val;  // filtered voltage value
   public:
     Battery();
-    float get_voltage();
-    float get_filtered_voltage();
+    float get_voltage();  // read current battery voltage from ADC
+    float get_filtered_voltage();  // read and low-pass filter battery voltage from ADC
 };
 
 class Sensors{
