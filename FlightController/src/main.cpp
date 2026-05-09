@@ -98,20 +98,20 @@ void loop() {
     q = k_filter.predict(measured_values.gyro_vec, measured_values.integration_period);  // model prediction using gyro
     k_filter.track_acc(measured_values.acc_vec, measured_values.integration_period);  // track accelerometer magnitude
 
-    Vector3 unit_acc = normalize(measured_values.acc_vec);
+    const Vector3 unit_acc = normalize(measured_values.acc_vec);
     q = k_filter.fuse_acc(unit_acc);  // fuse accelerometer data
 
-    Vector3 unit_mag = normalize(measured_values.mag_vec);  
-    Vector3 est_up = estimated_DCM.Column(2);  // best guess of UP direction
-    Vector3 perp_mag = unit_mag - dot(unit_mag, est_up)*est_up;  // horizontal component of magnetic vector
+    const Vector3 unit_mag = normalize(measured_values.mag_vec);  
+    const Vector3 est_up = estimated_DCM.Column(2);  // best guess of UP direction
+    const Vector3 perp_mag = unit_mag - dot(unit_mag, est_up)*est_up;  // horizontal component of magnetic vector
     q = k_filter.fuse_mag(normalize(perp_mag));  // fuse mag
 
     estimated_DCM = quat2R(q);  // quat to DCM conversion
     current_state.rpy = DCM2RPY(estimated_DCM);
     current_state.omega = measured_values.gyro_vec - k_filter.b; 
-    float max_val = k_filter.clamp_variance();  // reduce variance if too big
+    k_filter.clamp_variance();  // reduce variance if too big
 
-    bool update = gps.my_update_gps();
+    const bool update = gps.my_update_gps();
     if(update){  // gps data ready
       current_state.pos = gps.get_NWU_pos();
       current_state.vel = gps.get_NWU_speed();

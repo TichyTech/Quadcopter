@@ -1,18 +1,19 @@
 #include "control/quat_controller.h"
 
-// MOTOR NUMBERING DIAGRAM
-// TOP VIEW
-// FRONT
-//---------
-//        X
-//        ^
-//        |
-//
-//     1     2 
-//      \ | /
-// <-Y   |||    
-//      / | \ 
-//     4     3
+/*  MOTOR NUMBERING DIAGRAM
+    TOP VIEW
+    FRONT
+---------------
+        X
+        ^
+        |
+
+     1     2 
+      \ | /
+ <-Y   |||    
+      / | \ 
+     4     3
+*/
 
 QuatController::QuatController(){
   rate_P = {2.0f, 2.0f, 0.2f};
