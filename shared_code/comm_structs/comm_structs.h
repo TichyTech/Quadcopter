@@ -155,9 +155,9 @@ enum class MessageType : uint8_t {
 struct Message{
   data_array_t data = {};
   Message(){};
-  Message(data_array_t& buff);
+  Message(const data_array_t& buff);
   MessageType message_type();
-  void load_data(data_array_t& buff);
+  void load_data(const data_array_t& buff);
   void print_raw_data(Print& out);
 };
 
@@ -212,7 +212,7 @@ struct StateMessage : public Message{
   float battery;
   uint8_t numSV;
   int avg_diff;
-  StateMessage(uint32_t ms, float rpy[3], float pos[3], float vel[3], float battery, uint8_t numSV, int avg_diff);
+  StateMessage(uint32_t ms, const float rpy[3], const float pos[3], const float vel[3], float battery, uint8_t numSV, int avg_diff);
   using Message::Message;
   data_array_t& serialize();
   bool deserialize(data_array_t& buff);
@@ -236,7 +236,7 @@ struct AttitudeMessage : public Message{
   float pitch_pid_output;
   float yaw_pid_output;
   float throttle;
-  AttitudeMessage(uint32_t ms, float rpy_ref[3], float rpy_err[3], float rpy_rate_err[3], float rpy_pid_output[3], float throttle);
+  AttitudeMessage(uint32_t ms, const float rpy_ref[3], const float rpy_err[3], const float rpy_rate_err[3], const float rpy_pid_output[3], float throttle);
   using Message::Message;
   data_array_t& serialize();
   bool deserialize(data_array_t& buff);
@@ -256,7 +256,7 @@ struct PositionMessage : public Message{
   float x_acc_ref;
   float y_acc_ref;
   float z_acc_ref;
-  PositionMessage(uint32_t ms, float pos_err[3], float vel_err[3], float acc_ref[3]);
+  PositionMessage(uint32_t ms, const float pos_err[3], const float vel_err[3], const float acc_ref[3]);
   using Message::Message;
   data_array_t& serialize();
   bool deserialize(data_array_t& buff);
@@ -279,7 +279,7 @@ struct EKFMessage : public Message{
   float gyro_y;
   float gyro_z;
   float inn_mag;
-  EKFMessage(uint32_t ms, float rpy[3], float acc[3], float mag[3], float gyro[3], float inn_mag);
+  EKFMessage(uint32_t ms, const float rpy[3], const float acc[3], const float mag[3], const float gyro[3], float inn_mag);
   using Message::Message;
   data_array_t& serialize();
   bool deserialize(data_array_t& buff);
@@ -295,7 +295,7 @@ struct QuattitudeMessage : public Message{
   float i_err_x, i_err_y, i_err_z;
   float tau_x, tau_y, tau_z;
   float mp1, mp2, mp3, mp4;
-  QuattitudeMessage(uint16_t ms, float rpy_ref[3], float omega_des[3], float i_err[3], float tau[3], float mps[4]);
+  QuattitudeMessage(uint16_t ms, const float rpy_ref[3], const float omega_des[3], const float i_err[3], const float tau[3], const float mps[4]);
   using Message::Message;
   data_array_t& serialize();
   bool deserialize(data_array_t& buff);

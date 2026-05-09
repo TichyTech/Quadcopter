@@ -89,7 +89,7 @@ AttReference Communication::update_commands(float initial_yaw){  // receive late
   return latest_control;
 };
 
-void Communication::push_config(ConfigMessage new_config){
+void Communication::push_config(const ConfigMessage& new_config){
   Parameters latest_config = {new_config.a, new_config.b, new_config.c, new_config.x, new_config.y, new_config.z};
   latest_configs[static_cast<uint8_t>(new_config.axis)] = latest_config;  // store latest config
   updated_config[static_cast<uint8_t>(new_config.axis)] = true;  // set new config flag
@@ -101,30 +101,30 @@ Parameters Communication::pop_config(uint8_t axis){
   return latest_configs[axis];
 }
 
-Message Communication::create_state_msg(State& state, float battery, uint8_t numSV, int avg_diff){
-  StateMessage state_msg(millis(), state.rpy.storage, state.pos.storage, state.vel.storage, battery, numSV, avg_diff);
+Message Communication::create_state_msg(const State& state, const float battery, const uint8_t numSV, const int avg_diff){
+  const StateMessage state_msg(millis(), state.rpy.storage, state.pos.storage, state.vel.storage, battery, numSV, avg_diff);
   return Message(state_msg.data);
 }
 
-Message Communication::create_ekf_msg(State& state, Measurements& m, float inn_mag){
-  EKFMessage ekf_msg(millis(), state.rpy.storage, m.acc_vec.storage, m.mag_vec.storage, m.gyro_vec.storage, inn_mag);
+Message Communication::create_ekf_msg(const State& state, const Measurements& m, const float inn_mag){
+  const EKFMessage ekf_msg(millis(), state.rpy.storage, m.acc_vec.storage, m.mag_vec.storage, m.gyro_vec.storage, inn_mag);
   return Message(ekf_msg.data);
 }
 
-Message Communication::create_pos_msg(Vector3& pos_diff, Vector3& vel_diff, Vector3& acc_ref){
-  PositionMessage pos_msg(millis(), pos_diff.storage, vel_diff.storage, acc_ref.storage);
+Message Communication::create_pos_msg(const Vector3& pos_diff, const Vector3& vel_diff, const Vector3& acc_ref){
+  const PositionMessage pos_msg(millis(), pos_diff.storage, vel_diff.storage, acc_ref.storage);
   return Message(pos_msg.data);
 }
 
-Message Communication::create_attitude_msg(AttReference& att_ref, Vector3& ang_err, Vector3& pid_err, Vector3& PID_outputs){
+Message Communication::create_attitude_msg(const AttReference& att_ref, const Vector3& ang_err, const Vector3& pid_err, const Vector3& PID_outputs){
   float ang_ref[3] = {att_ref.roll, att_ref.pitch, att_ref.yaw};
-  AttitudeMessage att_msg(millis(), ang_ref, ang_err.storage, pid_err.storage, PID_outputs.storage, att_ref.throttle);
+  const AttitudeMessage att_msg(millis(), ang_ref, ang_err.storage, pid_err.storage, PID_outputs.storage, att_ref.throttle);
   return Message(att_msg.data);
 }
 
-Message Communication::create_quattitude_msg(AttReference& att_ref, Vector3& omega_des, Vector3& i_err, Vector3& tau, Vector4 mps){
-  float ang_ref[3] = {att_ref.roll, att_ref.pitch, att_ref.yaw};
-  QuattitudeMessage quat_msg(millis(), ang_ref, omega_des.storage, i_err.storage, tau.storage, mps.storage);
+Message Communication::create_quattitude_msg(const AttReference& att_ref, const Vector3& omega_des, const Vector3& i_err, const Vector3& tau, const Vector4 mps){
+  const float ang_ref[3] = {att_ref.roll, att_ref.pitch, att_ref.yaw};
+  const QuattitudeMessage quat_msg(millis(), ang_ref, omega_des.storage, i_err.storage, tau.storage, mps.storage);
   return Message(quat_msg.data);
 }
 
@@ -137,6 +137,6 @@ void Communication::send_msg(Message msg){
     Serial.println(static_cast<uint8_t>(msg.message_type()));
   }
   radio.stopListening(); 
-  bool report = radio.write(&msg.data, sizeof(msg.data), 1);
+  radio.write(&msg.data, sizeof(msg.data), 1);
   radio.startListening(); 
 }

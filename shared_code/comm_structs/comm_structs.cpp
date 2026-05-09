@@ -1,10 +1,10 @@
 #include "comm_structs.h"
 
-Message::Message(data_array_t& buff) {
+Message::Message(const data_array_t& buff) {
   load_data(buff);
 }
 
-void Message::load_data(data_array_t& buff) {
+void Message::load_data(const data_array_t& buff) {
   for (int i = 0; i < 32; ++i) {
     data[i] = buff[i];
   }
@@ -123,7 +123,7 @@ void ConfigMessage::printTo(Print &out) {
   out.print(z, 2);
 }
 
-StateMessage::StateMessage(uint32_t ms, float rpy[3], float pos[3], float vel[3], float battery, uint8_t numSV, int avg_diff)
+StateMessage::StateMessage(uint32_t ms, const float rpy[3], const float pos[3], const float vel[3], float battery, uint8_t numSV, int avg_diff)
   : ms(ms), roll(rpy[0]), pitch(rpy[1]), yaw(rpy[2]),
     x(pos[0]), y(pos[1]), z(pos[2]),
     vx(vel[0]), vy(vel[1]), vz(vel[2]),
@@ -199,7 +199,7 @@ void StateMessage::printTo(Print &out) {
   out.println();
 }
 
-AttitudeMessage::AttitudeMessage(uint32_t ms, float rpy_ref[3], float rpy_err[3], float rpy_rate_err[3], float rpy_pid_output[3], float throttle) :
+AttitudeMessage::AttitudeMessage(uint32_t ms, const float rpy_ref[3], const float rpy_err[3], const float rpy_rate_err[3], const float rpy_pid_output[3], float throttle) :
   ms(ms), roll_ref(rpy_ref[0]), pitch_ref(rpy_ref[1]), yaw_ref(rpy_ref[2]),
   roll_err(rpy_err[0]), pitch_err(rpy_err[1]), yaw_err(rpy_err[2]),
   roll_rate_err(rpy_rate_err[0]), pitch_rate_err(rpy_rate_err[1]), yaw_rate_err(rpy_rate_err[2]),
@@ -279,7 +279,7 @@ void AttitudeMessage::printTo(Print &out) {
   out.println();
 }
 
-PositionMessage::PositionMessage(uint32_t ms, float pos_err[3], float vel_err[3], float acc_ref[3]) :
+PositionMessage::PositionMessage(uint32_t ms, const float pos_err[3], const float vel_err[3], const float acc_ref[3]) :
   ms(ms), x_err(pos_err[0]), y_err(pos_err[1]), z_err(pos_err[2]),
   x_vel_err(vel_err[0]), y_vel_err(vel_err[1]), z_vel_err(vel_err[2]),
   x_acc_ref(acc_ref[0]), y_acc_ref(acc_ref[1]), z_acc_ref(acc_ref[2])
@@ -342,7 +342,7 @@ void PositionMessage::printTo(Print &out) {
   out.println();
 }
 
-EKFMessage::EKFMessage(uint32_t ms, float rpy[3], float acc[3], float mag[3], float gyro[3], float inn_mag)
+EKFMessage::EKFMessage(uint32_t ms, const float rpy[3], const float acc[3], const float mag[3], const float gyro[3], float inn_mag)
   : ms(ms), roll(rpy[0]), pitch(rpy[1]), yaw(rpy[2]),
     acc_x(acc[0]), acc_y(acc[1]), acc_z(acc[2]),
     mag_x(mag[0]), mag_y(mag[1]), mag_z(mag[2]),
@@ -423,7 +423,7 @@ void EKFMessage::printTo(Print &out) {
   out.println();
 }
 
-QuattitudeMessage::QuattitudeMessage(uint16_t ms, float rpy_ref[3], float omega_des[3], float i_err[3], float tau[3], float mps[4]) : 
+QuattitudeMessage::QuattitudeMessage(uint16_t ms, const float rpy_ref[3], const float omega_des[3], const float i_err[3], const float tau[3], const float mps[4]) : 
 ms(ms), roll_ref(rpy_ref[0]), pitch_ref(rpy_ref[1]), yaw_ref(rpy_ref[2]),
 i_err_x(i_err[0]), i_err_y(i_err[1]), i_err_z(i_err[2]),
 omega_x(omega_des[0]), omega_y(omega_des[1]), omega_z(omega_des[2]),

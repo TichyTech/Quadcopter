@@ -8,8 +8,8 @@
 
 class Mediator{
     private:
-        PosController &pos_ctrl;
         QuatController &quat_ctrl;
+        PosController &pos_ctrl;
         Communication &comm;
     public:
         Mediator(QuatController &quat_ctrl, PosController &pos_ctrl, Communication &comm);
