@@ -2,7 +2,7 @@
 #define QUAT_CONTROLLER_H
 
 #include "control/PID.h"
-#include "control/filter.h"
+#include "algebra.h"
 
 
 class QuatController{
