@@ -1,180 +1,104 @@
 #include <Arduino.h>
-
 #include "config.h"
-#include "definitions.h"
-#include "debug/debugging.h"
+#include "logging/ulog.h"
+#include <memory>
 
-#include "peripherals/peripherals.h"
-#include "peripherals/mediator.h"
-#include "peripherals/sensor_manager.h"
-#include "peripherals/drivers/NRF24.h"
-#include "peripherals/drivers/M100-5883.h"
-#include "peripherals/motors/motors.h"
+#include "peripherals/drivers/ICM42605.h"
 
-#include "control/quat_controller.h"
-#include "control/position_controller.h"
-#include "control/kalman.h"
+std::unique_ptr<Logger> logger;
+std::unique_ptr<Imu> imu;
+
+uint64_t last_log_time = 0;
+uint64_t num_msgs = 0;
+
+constexpr const char accel_name[] = "accel_msg";
+constexpr const char gyro_name[]  = "gyro_msg";
+
+using ulog_accel_msg_t = ulog_vector3f_msg_t<accel_name, 0>;
+using ulog_gyro_msg_t  = ulog_vector3f_msg_t<gyro_name, 1>;
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+void setup() 
+{
+  Serial.begin(115200);
+  // while (!Serial) {} 
+  Serial.println("Serial initialized");
 
-Temperatures measured_temps; // struct to hold all measured temperatures
-Measurements measured_values;  // struct to store all measured values
-State current_state;  // full drone state
-AttReference att_ref;
+  Serial.print("Initializing SPI...");
 
-uint32_t start_time = 0;
-float initial_yaw = 0;
+  Serial.println("Setting up SPI");
+  SPI.setRX(SPI0_MISO_PIN);
+  SPI.setSCK(SPI0_CLK_PIN);
+  SPI.setTX(SPI0_MOSI_PIN);
+  SPI.begin();
 
-Sensors sensors = Sensors();
-Communication comm = Communication(SPI); 
-QuatController quat_controller = QuatController();
-KalmanFilter estimator = KalmanFilter();
+  Serial.println("Setting up SPI1");
+  // Start SPI for sensors
+  SPI1.setRX(SPI1_MISO_PIN);
+  SPI1.setSCK(SPI1_CLK_PIN);
+  SPI1.setTX(SPI1_MOSI_PIN);
+  SPI1.begin();
 
-GPS gps = GPS();
-PosController pos_controller = PosController();
-Vector3 pos_controller_output = {0,0,0};
+  Serial.print("Initializing Logger...");
+  logger = std::make_unique<Logger>(SPI0_CS_SD_PIN, SPI);
+  logger->write_format_message(ulog_accel_msg_t{}.view());
+  logger->write_format_message(ulog_gyro_msg_t{}.view());
+  logger->write_subscription(ulog_accel_msg_t{}.view());
+  logger->write_subscription(ulog_gyro_msg_t{}.view());
 
-Mediator mediator(quat_controller, pos_controller, comm);
+  Serial.print("Initializing Imu...");
+  imu = std::make_unique<Imu>(SPI1, SPI1_CS_ICM_PIN);
+  imu->setup_imu();
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Serial.print("Logging sensors!");
+  last_log_time = millis();
+}
 
-void setup() {
-  initialize_peripherals();  // initialize SPI, I2C, Serial, pins
-  sensors.setup();  // configure sensors, blocking if not successful
-  comm.setup_nrf();  // set up nrf24, blocking if not successful
-  gps.setup_gps();
 
-  mount_motors();  // mount motor pins
-  setup_motor_pio();  // program and initialize pio state machines for motor control
-  arm_motors();  // send non-zero throttle to the motors to arm them
-
-  measured_values = sensors.get_measurements_filtered();
-
-  while (sensors.timed_out){
-    Serial.println("IMU timeout");
-    delay(500);
+void loop() 
+{
+  if (millis() - last_log_time > 500) {
+    logger->flush();
+    last_log_time = millis();
+    Serial.println(num_msgs / 0.5);
+    num_msgs = 0;
   }
 
-  // start of the control loop
-  const Matrix3 estimated_DCM = acc_mag2DCM(measured_values); // init DCM
-  estimator.init_quat(estimated_DCM);  // correct initialization of quaternion from DCM matrix
-  current_state.rpy = DCM2RPY(estimated_DCM);
+  imu->update_imu();
+  {
+    Vector3 acc_reading = imu->get_acc();
+    uint64_t timestamp = micros();
+    ulog_accel_msg_t msg = {
+      .payload = {
+        .data = {
+          .timestamp = timestamp,
+          .x = acc_reading(0),
+          .y = acc_reading(1),
+          .z = acc_reading(2)
+        }
+      }
+    };
 
-  // save initial state
-  initial_yaw = current_state.rpy(2);  // store initial yaw for control
-  start_time = millis();
-
-  Serial.println("Setup done");
-}
-
-void setup1(){
-  while(!start_time){  // wait for setup on the first core to finish
-      delay(200);
+    logger->write_data_message(msg.view());
   }
-}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-bool loop_telemetry_sent = false;
-bool control_telemetry_sent = false;
-bool position_hold = false;
-Vector3 hold_coordinates = {0,0,0};
-
-void loop() {
-    AttReference current_att_ref = att_ref;
-    uint8_t motors_on = current_att_ref.motors_on;
-    measured_values = sensors.get_measurements_filtered();  // update measurements from gyro, acc, mag and alt (and dt)
-    // const Temperature measured_temps = sensors.get_temperatures();
-
-    if (SAFETY) if (sensors.timed_out || comm.comm_timed_out) motors_on = 0;
-
-    digitalWrite(REDLED_PIN, (sensors.timed_out || comm.comm_timed_out) ? HIGH : LOW);  // light up red if sensors or comms timed out
-    digitalWrite(GREENLED_PIN, motors_on > 0 ? HIGH : LOW);  // light up green if motors run
-
-    mediator.update_configs();  // handle new PID config sent from controller
-
-    estimator.predict(measured_values.gyro_vec, measured_values.integration_period);  // model prediction using gyro
-    estimator.track_acc(measured_values.acc_vec, measured_values.integration_period);  // track accelerometer magnitude
-
-    const Vector3 unit_acc = normalize(measured_values.acc_vec);
-    estimator.fuse_acc(unit_acc);  // fuse accelerometer data
-
-    const Vector3 unit_mag = normalize(measured_values.mag_vec);  
-    const Vector3 est_up = quat2R(estimator.q).Column(2);  // best guess of UP direction
-    const Vector3 perp_mag = unit_mag - dot(unit_mag, est_up)*est_up;  // horizontal component of magnetic vector
-    const Vector4 q = estimator.fuse_mag(normalize(perp_mag));  // fuse mag
-
-    current_state.rpy = DCM2RPY(quat2R(estimator.q));
-    current_state.omega = measured_values.gyro_vec - estimator.b; 
-    estimator.clamp_variance();  // reduce variance if too big
-
-    const bool update = gps.my_update_gps();
-    if(update){  // gps data ready
-      current_state.pos = gps.get_NWU_pos();
-      current_state.vel = gps.get_NWU_speed();
-      if (!position_hold && motors_on == 2){
-          hold_coordinates = current_state.pos;  // remember the current position#
-          position_hold = true;
+  {
+    Vector3 gyro_reading = imu->get_gyro();
+    uint64_t timestamp = micros();
+    ulog_gyro_msg_t msg = {
+      .payload = {
+        .data = {
+          .timestamp = timestamp,
+          .x = gyro_reading(0),
+          .y = gyro_reading(1),
+          .z = gyro_reading(2)
+        }
       }
-      if (position_hold && motors_on != 2) position_hold = false;
-      if (position_hold){
-        pos_controller_output = pos_controller.process(hold_coordinates, current_state, measured_values.integration_period);
-        current_att_ref.roll += pos_controller_output(0);
-        current_att_ref.pitch += pos_controller_output(1);
-        current_att_ref.throttle += 0.01f*pos_controller_output(2);
-        control_telemetry_sent = false;
-      }
-    }
-    else if (millis() - gps.last_fix_timestamp > 500) position_hold = false;
+    };
 
-    // control_action = att_controller.process(att_ref, current_state, measured_values.integration_period, measured_values.battery); 
-    const Vector4 q_ref = rpy2quat({current_att_ref.roll, current_att_ref.pitch, current_att_ref.yaw});  // quaternion attitude reference
-    const Vector4 control_action = quat_controller.process(q_ref, q, measured_values.gyro_vec, current_att_ref.throttle, measured_values.integration_period);
-    if (motors_on == 0) signal_motors(zero_4vector); 
-    else signal_motors(control_action);
+    logger->write_data_message(msg.view());
+  }
 
-    analogWrite(EXT_LOAD0_PIN, int(current_att_ref.throttle * 255));
-    analogWrite(EXT_LOAD1_PIN, int(current_att_ref.throttle * 255));  
-    loop_telemetry_sent = false;  // set flag for sending telemetry
-}
-
-void loop1() {
-  att_ref = comm.update_commands(initial_yaw);  // poll for new commands
-  const State state_copy = current_state; 
-
-  #if RADIO_TELEMETRY
-    if ((millis() - comm.last_ctrl_ms) <= 42) // less than 42 milliseconds from last command ==> we can send telemetry
-    { 
-      // the nrf24 telemetry takes about 0.9 ms per message
-      if (!loop_telemetry_sent){
-        comm.send_msg(comm.create_state_msg(state_copy, measured_values.battery, gps.num_sv, comm.avg_diff));
-        comm.send_msg(comm.create_ekf_msg(state_copy, measured_values, estimator.last_inn_mag));
-        // comm.send_msg(comm.create_attitude_msg(att_controller.last_reference, att_controller.last_ang_err, att_controller.last_pid_err, att_controller.last_PID_outputs));
-        comm.send_msg(comm.create_quattitude_msg(att_ref, quat_controller.omega_des, quat_controller.err_sum, quat_controller.tau, quat_controller.m_p));
-        loop_telemetry_sent = true;  // only send once per control loop
-      }
-      if (!control_telemetry_sent){
-          comm.send_msg(comm.create_pos_msg(pos_controller.last_pos_dif, pos_controller.last_vel_diff, pos_controller_output));
-          control_telemetry_sent = true;
-      }
-    }
-  #endif
-  
-
-  #if SERIAL_TELEMETRY
-    if (!loop_telemetry_sent){
-      Message msg = comm.create_state_msg(state_copy, measured_values.battery, gps.num_sv, comm.avg_diff);
-      Serial.write((uint8_t*)&msg.data, 32);  // send the message to the controller
-      msg = comm.create_ekf_msg(state_copy, measured_values, estimator.last_inn_mag);
-      Serial.write((uint8_t*)&msg.data, sizeof(msg));  // send the message to the controller
-      // msg = comm.create_attitude_msg(att_controller.last_reference, att_controller.last_ang_err, att_controller.last_pid_err, att_controller.last_PID_outputs);
-      // Serial.write((uint8_t*)&msg.data, 32);
-      msg = comm.create_quattitude_msg(att_controller.last_reference, quat_controller.last_axis, quat_controller.omega_des, quat_controller.tau, quat_controller.m_p);
-      Serial.write((uint8_t*)&msg.data, 32);
-      loop_telemetry_sent = true;  // only send once per control loop
-    }
-    delay(16);
-  #endif
+  num_msgs++;
 
 }
