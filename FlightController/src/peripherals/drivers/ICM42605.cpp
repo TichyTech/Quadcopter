@@ -33,15 +33,17 @@ void Imu::setup_imu(){
   }
 
   set_bank(2);
-  // set ACC AAF to 364 Hz
+  // set ACC AAF to 364 Hz, Using magic numbers from the datasheet for this (search ACCEL_AAF_DELT)
   write_reg_verify(_spi, _cs_pin, ACCEL_CONFIG_STATIC2, (29U << 1) | (0x01), 1000000);  // acc AAF DELT 29, on
   write_reg_verify(_spi, _cs_pin, ACCEL_CONFIG_STATIC3, (848U & 0xFF), 1000000);  // acc AAF DELT 29, on
   write_reg_verify(_spi, _cs_pin, ACCEL_CONFIG_STATIC4, (0x05 << 4) | (848U >> 8), 1000000);  // acc AAF DELT 29, on
   set_bank(0);
 
   write_reg_verify(_spi, _cs_pin, GYRO_ACCEL_CONFIG0, (0x06 << 4) | (0x06), 1000000);  // ACC LPF BW 50Hz, GYRO LPF BW 50Hz
-  write_reg_verify(_spi, _cs_pin, ACCEL_CONFIG0, (0x03 << 5) | (0x06), 1000000);  // acc fs +-2g, 1kHz
-  write_reg_verify(_spi, _cs_pin, GYRO_CONFIG0, (0x01 << 5) | (0x06), 1000000);  // gyro fs +-1000dps, 1kHz
+  write_reg_verify(_spi, _cs_pin, ACCEL_CONFIG0, (0x03 << 5) | (0x03), 1000000);  // acc fs +-2g, 8kHz
+  write_reg_verify(_spi, _cs_pin, GYRO_CONFIG0, (0x01 << 5) | (0x03), 1000000);  // gyro fs +-1000dps, 8kHz
+  // write_reg_verify(_spi, _cs_pin, ACCEL_CONFIG0, (0x03 << 5) | (0x06), 1000000);  // acc fs +-2g, 1kHz
+  // write_reg_verify(_spi, _cs_pin, GYRO_CONFIG0, (0x01 << 5) | (0x06), 1000000);  // gyro fs +-1000dps, 1kHz
   write_reg_verify(_spi, _cs_pin, PWR_MGMT0, 0x1F, 1000000);  // Turn on temp, gyro and acc
   delayMicroseconds(200);  // per the datasheet we need to wait until further register writes
 }
@@ -122,14 +124,13 @@ void Imu::calibrate(){
   calibrate_gyro();
 }
 
-void Imu::update_imu(){
-  uint32_t micros_now = micros();
-  if ((micros_now - latest_acc_timestamp < ACC_REFRESH_PERIOD) && (micros_now - latest_gyro_timestamp < GYRO_REFRESH_PERIOD)) 
-    return;
-
-  latest_acc_timestamp = micros_now;
-  latest_gyro_timestamp = micros_now;
-
+bool Imu::update_imu(){
+  {
+    const uint32_t micros_now = micros();
+    if (((micros_now - latest_acc_timestamp) < ACC_REFRESH_PERIOD*1000000.0f) && ((micros_now - latest_gyro_timestamp) < GYRO_REFRESH_PERIOD*1000000.0f)) 
+      return false;
+  }
+  
   // fetch data from the sensor
   uint8_t buf[14];
   _spi.beginTransaction(SPISettings(24000000, MSBFIRST, SPI_MODE3));
@@ -138,6 +139,12 @@ void Imu::update_imu(){
   _spi.transfer(nullptr, buf, 14);
   digitalWrite(SPI1_CS_ICM_PIN, HIGH); 
   _spi.endTransaction(); 
+
+  {
+    const uint32_t micros_now = micros();
+    latest_acc_timestamp = micros_now;
+    latest_gyro_timestamp = micros_now;
+  }
 
   // reinterpret the data
   int16_t data[7];
@@ -157,11 +164,12 @@ void Imu::update_imu(){
 
   latest_acc_vec = latest_acc_vec - acc_bias;
   latest_gyro_vec = latest_gyro_vec - gyro_bias;
+  return true;
 }
 
-void Imu::update_acc(){
-  uint32_t micros_now = micros();
-  if (micros_now - latest_acc_timestamp < ACC_REFRESH_PERIOD) return;
+bool Imu::update_acc(){
+  const uint32_t micros_now = micros();
+  if (micros_now - latest_acc_timestamp < ACC_REFRESH_PERIOD*1000000.0f) return false;
   latest_acc_timestamp = micros_now;
 
   // fetch data from the sensor
@@ -183,11 +191,12 @@ void Imu::update_acc(){
     -ACC_LSB*data[2]
   };  
   latest_acc_vec = latest_acc_vec - acc_bias;
+  return true;
 }
 
-void Imu::update_gyro(){
-  uint32_t micros_now = micros();
-  if (micros_now - latest_gyro_timestamp < GYRO_REFRESH_PERIOD) return;
+bool Imu::update_gyro(){
+  const uint32_t micros_now = micros();
+  if (micros_now - latest_gyro_timestamp < GYRO_REFRESH_PERIOD*1000000.0f) return false;
   latest_gyro_timestamp = micros_now;
 
   // fetch data from the sensor
@@ -209,6 +218,7 @@ void Imu::update_gyro(){
     -GYRO_LSB*data[2]
   };  
   latest_gyro_vec = latest_gyro_vec - gyro_bias;
+  return true;
 }
 
 Vector3 Imu::get_acc(){

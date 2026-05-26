@@ -50,6 +50,8 @@ void setup()
   imu = std::make_unique<Imu>(SPI1, SPI1_CS_ICM_PIN);
   imu->setup_imu();
 
+  delay(2);  // Sleep to allow imu to startup
+
   Serial.print("Logging sensors!");
   last_log_time = millis();
 }
@@ -64,41 +66,44 @@ void loop()
     num_msgs = 0;
   }
 
-  imu->update_imu();
+  const bool new_data = imu->update_imu();
+  if (new_data)
   {
-    Vector3 acc_reading = imu->get_acc();
-    uint64_t timestamp = micros();
-    ulog_accel_msg_t msg = {
-      .payload = {
-        .data = {
-          .timestamp = timestamp,
-          .x = acc_reading(0),
-          .y = acc_reading(1),
-          .z = acc_reading(2)
+    {
+      Vector3 acc_reading = imu->get_acc();
+      uint64_t timestamp = micros();
+      ulog_accel_msg_t msg = {
+        .payload = {
+          .data = {
+            .timestamp = timestamp,
+            .x = acc_reading(0),
+            .y = acc_reading(1),
+            .z = acc_reading(2)
+          }
         }
-      }
-    };
+      };
 
-    logger->write_data_message(msg.view());
-  }
+      logger->write_data_message(msg.view());
+    }
 
-  {
-    Vector3 gyro_reading = imu->get_gyro();
-    uint64_t timestamp = micros();
-    ulog_gyro_msg_t msg = {
-      .payload = {
-        .data = {
-          .timestamp = timestamp,
-          .x = gyro_reading(0),
-          .y = gyro_reading(1),
-          .z = gyro_reading(2)
+    {
+      Vector3 gyro_reading = imu->get_gyro();
+      uint64_t timestamp = micros();
+      ulog_gyro_msg_t msg = {
+        .payload = {
+          .data = {
+            .timestamp = timestamp,
+            .x = gyro_reading(0),
+            .y = gyro_reading(1),
+            .z = gyro_reading(2)
+          }
         }
-      }
-    };
+      };
 
-    logger->write_data_message(msg.view());
-  }
+      logger->write_data_message(msg.view());
+    }
 
-  num_msgs++;
+    num_msgs++;
+  }  // new_data = true
 
 }

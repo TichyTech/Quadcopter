@@ -4,9 +4,9 @@
 #include "debug/debugging.h"
 #include <SPI.h>
 
-#define ACC_REFRESH_RATE 1000.0f  // Hz
+#define ACC_REFRESH_RATE 8000.0f  // Hz
 #define ACC_REFRESH_PERIOD (1.0f/ACC_REFRESH_RATE)  // in seconds
-#define GYRO_REFRESH_RATE 1000.0f  // Hz
+#define GYRO_REFRESH_RATE 8000.0f  // Hz
 #define GYRO_REFRESH_PERIOD (1.0f/GYRO_REFRESH_RATE)  // in seconds
 #define ACC_FS 2.0f  // g
 #define GYRO_FS 1000.0f  // dps
@@ -58,9 +58,9 @@ class Imu{
         void calibrate_acc();
         void calibrate_gyro();
 
-        void update_imu();
-        void update_gyro();
-        void update_acc();
+        bool update_imu();
+        bool update_gyro();
+        bool update_acc();
 
         Vector3 get_acc();
         Vector3 get_gyro();

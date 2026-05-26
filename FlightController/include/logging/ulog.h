@@ -16,7 +16,7 @@ class Logger{
   
     bool m_initialized;
     String log_fname;
-    File32 log_file;
+    FsFile log_file;
     SdFat sd;
 
     template<typename T> bool write(const T v);

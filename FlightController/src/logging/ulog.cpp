@@ -84,14 +84,14 @@ Logger::Logger(uint8_t cs_pin, arduino::HardwareSPI &SPI)
   }
   Serial.println("[Logger]: SD card initialized!");
 
-  File32 root = sd.open("/");
+  FsFile root = sd.open("/");
   uint16_t num_files = 0;
   while (true) {
-      File32 entry = root.openNextFile();
+      FsFile entry = root.openNextFile();
       if (!entry) break;  // no more files
       num_files += 1;
       Serial.print("File: ");
-      entry.printName();
+      entry.printName(&Serial);
       Serial.print(" size: ");
       Serial.println(entry.size());
       entry.close();
